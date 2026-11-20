@@ -1,5 +1,7 @@
 # MoodCam 😊😢
 
+🌐 **Live demo:** https://face-detction.vercel.app
+
 Real-time face expression detection in the browser. Point the camera at your face and MoodCam tells you whether you look **Happy** or **Sad** (plus Neutral, Angry, Surprised, Fearful, Disgusted).
 
 - Runs **fully on your device**. Video never leaves your phone or laptop.
