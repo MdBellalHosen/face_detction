@@ -9,7 +9,6 @@ let loading: Promise<void> | null = null;
 export function loadModels(): Promise<void> {
   if (!loading) {
     loading = (async () => {
-      await faceapi.tf.ready();
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),

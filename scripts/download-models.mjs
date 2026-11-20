@@ -5,12 +5,12 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const BASE = 'https://raw.githubusercontent.com/vladmandic/face-api/master/model';
-const FILES = [
-  'tiny_face_detector_model.json',
-  'tiny_face_detector_model.bin',
-  'face_expression_model.json',
-  'face_expression_model.bin',
-];
+const MODELS = ['tiny_face_detector_model', 'face_expression_model'];
+
+// The manifest (.json) has been published under two names. Try both, and save it under both
+// names locally so the loader finds it whichever one it asks for.
+const manifestSources = (name) => [`${name}-weights_manifest.json`, `${name}.json`];
+const manifestTargets = (name) => [`${name}-weights_manifest.json`, `${name}.json`];
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(root, 'public', 'models');
@@ -25,23 +25,53 @@ const exists = async (p) => {
   }
 };
 
+const download = async (file) => {
+  const res = await fetch(`${BASE}/${file}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return Buffer.from(await res.arrayBuffer());
+};
+
 await mkdir(outDir, { recursive: true });
 
 let failed = 0;
-for (const file of FILES) {
-  const dest = path.join(outDir, file);
-  if (!force && (await exists(dest))) {
-    console.log(`[models] skip  ${file} (already exists)`);
+for (const name of MODELS) {
+  // 1. weights (.bin)
+  const bin = `${name}.bin`;
+  if (!force && (await exists(path.join(outDir, bin)))) {
+    console.log(`[models] skip  ${bin} (already exists)`);
+  } else {
+    try {
+      await writeFile(path.join(outDir, bin), await download(bin));
+      console.log(`[models] saved ${bin}`);
+    } catch (err) {
+      failed += 1;
+      console.warn(`[models] FAILED ${bin}: ${err.message}`);
+    }
+  }
+
+  // 2. manifest (.json)
+  const targets = manifestTargets(name).map((f) => path.join(outDir, f));
+  const haveAll = (await Promise.all(targets.map(exists))).every(Boolean);
+  if (!force && haveAll) {
+    console.log(`[models] skip  ${name} manifest (already exists)`);
     continue;
   }
-  try {
-    const res = await fetch(`${BASE}/${file}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    await writeFile(dest, Buffer.from(await res.arrayBuffer()));
-    console.log(`[models] saved ${file}`);
-  } catch (err) {
+
+  let data = null;
+  for (const source of manifestSources(name)) {
+    try {
+      data = await download(source);
+      console.log(`[models] saved ${name} manifest (from ${source})`);
+      break;
+    } catch (err) {
+      console.warn(`[models] ${source}: ${err.message}`);
+    }
+  }
+  if (data) {
+    await Promise.all(targets.map((target) => writeFile(target, data)));
+  } else {
     failed += 1;
-    console.warn(`[models] FAILED ${file}: ${err.message}`);
+    console.warn(`[models] FAILED ${name} manifest`);
   }
 }
 
