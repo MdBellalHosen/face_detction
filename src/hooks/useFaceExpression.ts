@@ -5,8 +5,9 @@ import { EXPRESSIONS, topExpression, type Scores } from '../lib/expressions';
 
 /** Run at most ~10 detections per second; faster devices simply wait, slower ones go as fast as they can. */
 const TARGET_FRAME_MS = 100;
-/** Smaller input = faster detection. 160 is plenty for a face that fills the selfie camera. */
-const INPUT_SIZE = 160;
+/** Larger input = more accurate face finding (160 was too small, 224 is a good speed/accuracy balance). */
+const INPUT_SIZE = 224;
+const DETECTION_THRESHOLD = 0.4;
 const MISSES_BEFORE_LOST = 5; // ~0.5s without a face before we say "face not found"
 
 export type ModelsStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -58,7 +59,10 @@ export function useFaceExpression({ videoRef, canvasRef, enabled, cameraActive, 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let misses = 0;
-    const options = new api.TinyFaceDetectorOptions({ inputSize: INPUT_SIZE, scoreThreshold: 0.5 });
+    const options = new api.TinyFaceDetectorOptions({
+      inputSize: INPUT_SIZE,
+      scoreThreshold: DETECTION_THRESHOLD,
+    });
 
     const tick = async () => {
       const started = performance.now();

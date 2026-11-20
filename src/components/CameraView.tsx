@@ -12,7 +12,7 @@ interface Props {
 
 /** Live video with a canvas on top for the face box. */
 export function CameraView({ videoRef, canvasRef, mirror, paused, active, children }: Props) {
-  const [aspect, setAspect] = useState('3 / 4');
+  const [ratio, setRatio] = useState(3 / 4);
 
   // Freeze / unfreeze the picture when the user pauses.
   useEffect(() => {
@@ -23,7 +23,11 @@ export function CameraView({ videoRef, canvasRef, mirror, paused, active, childr
   }, [paused, active, videoRef]);
 
   return (
-    <div className="camera" style={{ aspectRatio: aspect }}>
+    // Keep the video's true shape, but never taller than 60% of the screen.
+    <div
+      className="camera"
+      style={{ aspectRatio: String(ratio), width: `min(100%, calc(60dvh * ${ratio}))` }}
+    >
       <div className={`camera__layer${mirror ? ' camera__layer--mirror' : ''}`}>
         <video
           ref={videoRef}
@@ -33,7 +37,7 @@ export function CameraView({ videoRef, canvasRef, mirror, paused, active, childr
           playsInline
           onLoadedMetadata={(e) => {
             const { videoWidth, videoHeight } = e.currentTarget;
-            if (videoWidth && videoHeight) setAspect(`${videoWidth} / ${videoHeight}`);
+            if (videoWidth && videoHeight) setRatio(videoWidth / videoHeight);
           }}
         />
         <canvas ref={canvasRef} className="camera__canvas" />

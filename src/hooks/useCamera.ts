@@ -44,7 +44,13 @@ export function useCamera() {
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: wanted }, width: { ideal: 640 }, height: { ideal: 480 } },
+          // HD picture so the preview is sharp on high-density phone screens.
+          video: {
+            facingMode: { ideal: wanted },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30 },
+          },
           audio: false,
         });
 
@@ -61,7 +67,13 @@ export function useCamera() {
           await video.play().catch(() => undefined);
         }
 
-        const actual = stream.getVideoTracks()[0]?.getSettings().facingMode;
+        // Ask for continuous autofocus where supported (Chrome on Android); ignored elsewhere.
+        const track = stream.getVideoTracks()[0];
+        await track
+          ?.applyConstraints({ advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet] })
+          .catch(() => undefined);
+
+        const actual = track?.getSettings().facingMode;
         const resolved: Facing = actual === 'environment' || actual === 'user' ? actual : wanted;
         facingRef.current = resolved;
         setFacing(resolved);
