@@ -1,0 +1,40 @@
+export const en = {
+  appName: 'MoodCam',
+  tagline: 'Point the camera at your face and see if you look Happy or Sad.',
+  privacy: 'Your video never leaves your device.',
+  start: 'Start Camera',
+  loadingModels: 'Loading AI models…',
+  modelsError: 'Could not load the AI models. Check your internet and try again.',
+  retry: 'Try again',
+  cameraStarting: 'Starting camera…',
+  errors: {
+    denied: 'Camera permission was denied. Allow camera access in your browser settings.',
+    notFound: 'No camera was found on this device.',
+    unsupported: 'Camera is not available. Open this app over HTTPS in a modern browser.',
+    other: 'Could not start the camera. Please try again.',
+  },
+  noFace: 'Face not found, move closer to the camera',
+  uncertain: 'Not sure…',
+  confidence: 'Confidence',
+  sad: 'Sad',
+  happy: 'Happy',
+  expressions: {
+    neutral: 'Neutral',
+    happy: 'Happy',
+    sad: 'Sad',
+    angry: 'Angry',
+    fearful: 'Fearful',
+    disgusted: 'Disgusted',
+    surprised: 'Surprised',
+  },
+  controls: {
+    switchCamera: 'Switch camera',
+    pause: 'Pause',
+    resume: 'Resume',
+    mirror: 'Mirror',
+    stop: 'Stop',
+  },
+  languageName: 'বাংলা',
+};
+
+export type Dict = typeof en;

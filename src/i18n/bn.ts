@@ -1,0 +1,40 @@
+import type { Dict } from './en';
+
+export const bn: Dict = {
+  appName: 'MoodCam',
+  tagline: 'ক্যামেরায় নিজের মুখ দেখান, বুঝুন আপনি খুশি নাকি দুঃখী।',
+  privacy: 'আপনার ভিডিও কখনো ডিভাইসের বাইরে যায় না।',
+  start: 'ক্যামেরা চালু করুন',
+  loadingModels: 'AI মডেল লোড হচ্ছে…',
+  modelsError: 'AI মডেল লোড করা যায়নি। ইন্টারনেট চেক করে আবার চেষ্টা করুন।',
+  retry: 'আবার চেষ্টা করুন',
+  cameraStarting: 'ক্যামেরা চালু হচ্ছে…',
+  errors: {
+    denied: 'ক্যামেরার অনুমতি দেওয়া হয়নি। ব্রাউজার সেটিংস থেকে অনুমতি দিন।',
+    notFound: 'এই ডিভাইসে কোনো ক্যামেরা পাওয়া যায়নি।',
+    unsupported: 'ক্যামেরা পাওয়া যাচ্ছে না। আধুনিক ব্রাউজারে HTTPS দিয়ে অ্যাপটি খুলুন।',
+    other: 'ক্যামেরা চালু করা যায়নি। আবার চেষ্টা করুন।',
+  },
+  noFace: 'মুখ পাওয়া যায়নি, ক্যামেরার কাছে আসুন',
+  uncertain: 'নিশ্চিত নই…',
+  confidence: 'নিশ্চয়তা',
+  sad: 'দুঃখী',
+  happy: 'খুশি',
+  expressions: {
+    neutral: 'স্বাভাবিক',
+    happy: 'খুশি',
+    sad: 'দুঃখী',
+    angry: 'রাগান্বিত',
+    fearful: 'ভীত',
+    disgusted: 'বিরক্ত',
+    surprised: 'অবাক',
+  },
+  controls: {
+    switchCamera: 'ক্যামেরা বদলান',
+    pause: 'থামান',
+    resume: 'চালু করুন',
+    mirror: 'মিরর',
+    stop: 'বন্ধ করুন',
+  },
+  languageName: 'English',
+};
