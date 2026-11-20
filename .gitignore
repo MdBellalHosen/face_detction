@@ -1,0 +1,13 @@
+node_modules
+dist
+dev-dist
+*.local
+.DS_Store
+
+# Downloaded by scripts/download-models.mjs (postinstall)
+public/models/*
+!public/models/.gitkeep
+
+# Capacitor native projects (generated with `npx cap add android|ios`)
+android
+ios
