@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import * as faceapi from '@vladmandic/face-api';
-import { boxColor, drawBox, loadModels } from '../lib/faceApi';
+import { boxColor, drawBox, loadModels, type FaceApi } from '../lib/faceApi';
 import { createSmoother } from '../lib/smoothing';
 import { EXPRESSIONS, topExpression, type Scores } from '../lib/expressions';
 
-const INTERVAL_MS = 200;
-const MISSES_BEFORE_LOST = 3; // ~0.6s without a face before we say "face not found"
+/** Run at most ~10 detections per second; faster devices simply wait, slower ones go as fast as they can. */
+const TARGET_FRAME_MS = 100;
+/** Smaller input = faster detection. 160 is plenty for a face that fills the selfie camera. */
+const INPUT_SIZE = 160;
+const MISSES_BEFORE_LOST = 5; // ~0.5s without a face before we say "face not found"
 
 export type ModelsStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -17,7 +19,7 @@ export interface DetectionState {
 interface Options {
   videoRef: RefObject<HTMLVideoElement>;
   canvasRef: RefObject<HTMLCanvasElement>;
-  /** Start loading the AI models (true once the user pressed Start). */
+  /** Start loading the AI library + models (can be true from the first screen to preload). */
   enabled: boolean;
   cameraActive: boolean;
   paused: boolean;
@@ -28,14 +30,16 @@ export function useFaceExpression({ videoRef, canvasRef, enabled, cameraActive, 
   const [attempt, setAttempt] = useState(0);
   const [detection, setDetection] = useState<DetectionState>({ scores: null, faceFound: false });
   const smootherRef = useRef(createSmoother(5));
+  const apiRef = useRef<FaceApi | null>(null);
 
-  // 1. Load models
+  // 1. Load library + models
   useEffect(() => {
     if (!enabled) return;
     let cancelled = false;
-    setModelsStatus('loading');
+    setModelsStatus((prev) => (prev === 'ready' ? prev : 'loading'));
     loadModels()
-      .then(() => {
+      .then((api) => {
+        apiRef.current = api;
         if (!cancelled) setModelsStatus('ready');
       })
       .catch(() => {
@@ -48,20 +52,23 @@ export function useFaceExpression({ videoRef, canvasRef, enabled, cameraActive, 
 
   // 2. Detection loop
   useEffect(() => {
-    if (modelsStatus !== 'ready' || !cameraActive || paused) return;
+    const api = apiRef.current;
+    if (modelsStatus !== 'ready' || !api || !cameraActive || paused) return;
 
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let misses = 0;
-    const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+    const options = new api.TinyFaceDetectorOptions({ inputSize: INPUT_SIZE, scoreThreshold: 0.5 });
 
     const tick = async () => {
+      const started = performance.now();
       const video = videoRef.current;
       const canvas = canvasRef.current;
 
-      if (video && canvas && video.readyState >= 2 && video.videoWidth > 0) {
+      // Skip work while the tab is hidden (saves battery).
+      if (!document.hidden && video && canvas && video.readyState >= 2 && video.videoWidth > 0) {
         try {
-          const result = await faceapi.detectSingleFace(video, options).withFaceExpressions();
+          const result = await api.detectSingleFace(video, options).withFaceExpressions();
           if (cancelled) return;
 
           if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
@@ -94,7 +101,10 @@ export function useFaceExpression({ videoRef, canvasRef, enabled, cameraActive, 
         }
       }
 
-      if (!cancelled) timer = setTimeout(tick, INTERVAL_MS);
+      if (!cancelled) {
+        const wait = Math.max(0, TARGET_FRAME_MS - (performance.now() - started));
+        timer = setTimeout(tick, wait);
+      }
     };
 
     void tick();

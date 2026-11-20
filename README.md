@@ -13,7 +13,7 @@ Real-time face expression detection in the browser. Point the camera at your fac
 ## How it works
 
 1. The camera stream is shown in a `<video>` (`playsInline`, `muted`, `autoPlay` for iOS Safari).
-2. Every ~200 ms the detector finds the face and scores 7 expressions.
+2. About 10 times per second the detector finds the face and scores 7 expressions.
 3. Scores are averaged over the last 5 frames so the label does not flicker.
 4. If the top score is below 0.5, the app shows "Not sure" instead of guessing.
 5. The Happy ↔ Sad meter is `happy / (happy + sad)`, from 0% (sad) to 100% (happy).

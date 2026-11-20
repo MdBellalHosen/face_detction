@@ -1,18 +1,27 @@
-import * as faceapi from '@vladmandic/face-api';
 import { CONFIDENCE_THRESHOLD, type Expression } from './expressions';
+
+export type FaceApi = typeof import('@vladmandic/face-api');
 
 const MODEL_URL = `${import.meta.env.BASE_URL}models`;
 
-let loading: Promise<void> | null = null;
+let loading: Promise<FaceApi> | null = null;
 
-/** Loads the face detector + expression models once. Safe to call many times. */
-export function loadModels(): Promise<void> {
+/**
+ * Loads the face-api library and the two models once. Safe to call many times.
+ * The library (TensorFlow.js, a few MB) is imported lazily so the first screen
+ * shows up instantly and the heavy code downloads in the background.
+ */
+export function loadModels(): Promise<FaceApi> {
   if (!loading) {
     loading = (async () => {
+      const mod = await import('@vladmandic/face-api');
+      // Some bundlers expose the exports under `default`.
+      const faceapi: FaceApi = 'nets' in mod ? mod : (mod as unknown as { default: FaceApi }).default;
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
       ]);
+      return faceapi;
     })().catch((err) => {
       loading = null; // allow retry
       throw err;

@@ -23,7 +23,7 @@ export default function App() {
   const { modelsStatus, detection, retryModels } = useFaceExpression({
     videoRef: camera.videoRef,
     canvasRef,
-    enabled: started,
+    enabled: true, // preload the AI in the background while the user is on the first screen
     cameraActive,
     paused,
   });
